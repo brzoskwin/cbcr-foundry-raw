@@ -1,16 +1,16 @@
 ---
 mappings:
-- alias: "/brzoskwin-17843a/CbCR Tax Rate Analysis/cbcr_clean"
-  modes:
-  - "BUILD"
-  path: "/deprecated-field"
-  rid: "ri.foundry.main.dataset.e3d5b917-7337-44d7-a66e-b6afa00fdb5b"
 - alias: "ri.foundry.main.dataset.19cf92fd-547c-4ded-8444-c7baf6666305"
   modes:
   - "BUILD"
   - "READ"
   path: "/deprecated-field"
   rid: "ri.foundry.main.dataset.19cf92fd-547c-4ded-8444-c7baf6666305"
+- alias: "ri.foundry.main.dataset.e3d5b917-7337-44d7-a66e-b6afa00fdb5b"
+  modes:
+  - "BUILD"
+  path: "/deprecated-field"
+  rid: "ri.foundry.main.dataset.e3d5b917-7337-44d7-a66e-b6afa00fdb5b"
 - alias: "ri.magritte..source.2183349f-f442-4f9c-8da6-dd4af6a0278b"
   modes:
   - "READ"
