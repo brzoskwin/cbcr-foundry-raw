@@ -1,32 +1,25 @@
 from transforms.api import transform, Output
-import requests
-from datetime import datetime
+from transforms.external.systems import external_systems, Source
 
-BASE_URL = "https://sdmx.oecd.org/public/rest/data"
 DATAFLOW = "OECD.CTP.TPS,DSD_CBCR@DF_CBCRI,1.0"
 FILTER = "all"
 PARAMS = {"startPeriod": "2016", "format": "csvfilewithlabels"}
 
-
-def build_url() -> str:
-    query = "&".join(f"{k}={v}" for k, v in PARAMS.items())
-    return f"{BASE_URL}/{DATAFLOW}/{FILTER}?{query}"
-
-
-@transform(
-    output=Output("/brzoskwin-17843a/CbCR Tax Rate Analysis/cbcr_raw"),
+@external_systems(
+    oecd_source=Source("ri.magritte..source.2183349f-f442-4f9c-8da6-dd4af6a0278b")
 )
-def compute(output, ctx):
-    url = build_url()
-    headers = {"Accept": "text/csv"}
-    print(f"[{datetime.now().isoformat()}] GET {url}")
-    response = requests.get(url, headers=headers, timeout=60)
+@transform(
+    out=Output("/brzoskwin-17843a/CbCR Tax Rate Analysis/cbcr_raw")
+)
+def compute(oecd_source, out):
+    connection = oecd_source.get_https_connection()
+    client = connection.get_client()
+
+    query = "&".join(f"{k}={v}" for k, v in PARAMS.items())
+    path = f"/public/rest/data/{DATAFLOW}/{FILTER}?{query}"
+
+    response = client.get(path, timeout=60)
     response.raise_for_status()
 
-    import pandas as pd
-    from io import StringIO
-    df = pd.read_csv(StringIO(response.text))
-
-    spark_df = ctx.spark_session.createDataFrame(df)
-    output.write_dataframe(spark_df)
-    
+    with out.filesystem().open("cbcr_raw.csv", "wb") as f:
+        f.write(response.content)
