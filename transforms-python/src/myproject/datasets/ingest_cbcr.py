@@ -14,7 +14,7 @@ def build_url() -> str:
 
 
 @transform(
-    output=Output("/CbCR Tax Rate Analysis/datasets/cbcr_raw"),
+    output=Output("/brzoskwin-17843a/CbCR Tax Rate Analysis/cbcr_raw"),
 )
 def compute(output, ctx):
     url = build_url()
@@ -29,3 +29,4 @@ def compute(output, ctx):
 
     spark_df = ctx.spark_session.createDataFrame(df)
     output.write_dataframe(spark_df)
+    
