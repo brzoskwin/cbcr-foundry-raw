@@ -16,10 +16,7 @@ DEDUP_KEYS = ["jurisdiction", "counterpart_jurisdiction", "measure", "year"]
 def select_and_rename(df):
     missing = [c for c in RAW_COLUMNS if c not in df.columns]
     if missing:
-        raise ValueError(
-            f"Expected columns not found: {missing}. "
-            f"Available columns: {df.columns}"
-        )
+        raise ValueError(f"Expected columns not found: {missing}. Available: {df.columns}")
     df = df.select(*RAW_COLUMNS.keys())
     for old_name, new_name in RAW_COLUMNS.items():
         df = df.withColumnRenamed(old_name, new_name)
@@ -29,12 +26,16 @@ def select_and_rename(df):
 def cast_types(df):
     return (
         df.withColumn("year", F.col("year").cast("int"))
-          .withColumn("obs_value", F.col("obs_value").cast("double"))
+        .withColumn("obs_value", F.col("obs_value").cast("double"))
     )
 
 
+def add_ingestion_metadata(df):
+    return df.withColumn("_ingested_at", F.current_timestamp())
+
+
 def deduplicate(df):
-    window = Window.partitionBy(*DEDUP_KEYS).orderBy(F.lit(1))
+    window = Window.partitionBy(*DEDUP_KEYS).orderBy(F.col("_ingested_at").desc())
     df = df.withColumn("row_num", F.row_number().over(window))
     return df.filter(F.col("row_num") == 1).drop("row_num")
 
@@ -46,11 +47,11 @@ def deduplicate(df):
 def compute(raw, out):
     spark = SparkSession.builder.getOrCreate()
     path = raw.filesystem().hadoop_path
-
     raw_df = spark.read.csv(path, header=True, inferSchema=False)
 
     clean_df = select_and_rename(raw_df)
     clean_df = cast_types(clean_df)
+    clean_df = add_ingestion_metadata(clean_df)
     clean_df = clean_df.dropna(subset=["jurisdiction", "year", "obs_value"])
     clean_df = deduplicate(clean_df)
 
