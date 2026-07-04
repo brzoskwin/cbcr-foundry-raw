@@ -41,7 +41,7 @@ def deduplicate(df):
 
 @transform(
     raw=Input("ri.foundry.main.dataset.19cf92fd-547c-4ded-8444-c7baf6666305"),
-    out=Output("ri.foundry.main.dataset.PASTE_YOUR_CLEAN_CBCR_RID_HERE"),
+    out=Output("/brzoskwin-17843a/CbCR Tax Rate Analysis/cbcr_clean"),
 )
 def compute(raw, out):
     ctx = raw.dataframe().sql_ctx.sparkSession
