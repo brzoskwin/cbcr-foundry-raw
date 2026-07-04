@@ -1,5 +1,6 @@
 import io
 import pandas as pd
+from pyspark.sql import SparkSession
 from transforms.api import transform, Output
 from transforms.external.systems import external_systems, Source
 
@@ -31,6 +32,11 @@ def compute(oecd_source, out):
             if attempt == 2:
                 raise e
 
-    df = pd.read_csv(io.BytesIO(response.content))
+    pdf = pd.read_csv(io.BytesIO(response.content))
+    pdf.columns = [str(c).strip().replace(" ", "_").replace(".", "_") for c in pdf.columns]
+    pdf = pdf.astype(str)
 
-    out.write_dataframe(df)
+    spark = SparkSession.builder.getOrCreate()
+    sdf = spark.createDataFrame(pdf)
+
+    out.write_dataframe(sdf)
