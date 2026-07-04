@@ -5,6 +5,11 @@ mappings:
   - "READ"
   path: "/deprecated-field"
   rid: "ri.foundry.main.dataset.e3d5b917-7337-44d7-a66e-b6afa00fdb5b"
+- alias: "/brzoskwin-17843a/CbCR Tax Rate Analysis/cbcr_incremental_snapshot"
+  modes:
+  - "BUILD"
+  path: "/deprecated-field"
+  rid: "ri.foundry.main.dataset.8009214f-f3ac-4aeb-a693-d6afdcae90d3"
 - alias: "/brzoskwin-17843a/CbCR Tax Rate Analysis/effective_vs_statutory"
   modes:
   - "BUILD"
