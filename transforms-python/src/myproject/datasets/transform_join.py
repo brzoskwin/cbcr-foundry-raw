@@ -67,6 +67,10 @@ def compute(cbcr, tax, out):
         F.col("statutory_rate") - F.col("effective_tax_rate_pct"),
     )
 
+    merged = merged.withColumn(
+        "id", F.concat_ws("_", F.col("jurisdiction"), F.col("year").cast("string"))
+    )
+
     merged = merged.orderBy(F.col("gap_statutory_minus_effective").desc())
 
     out.write_dataframe(merged)
