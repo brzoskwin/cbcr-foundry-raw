@@ -1,5 +1,7 @@
 from transforms.api import transform, Output
 from transforms.external.systems import external_systems, Source
+import json
+from datetime import datetime, timezone
 
 DATAFLOW = "OECD.CTP.TPS,DSD_CBCR@DF_CBCRI,1.0"
 FILTER = "all"
@@ -31,3 +33,7 @@ def compute(oecd_source, out):
 
     with out.filesystem().open("cbcr_raw.csv", "wb") as f:
         f.write(response.content)
+
+    metadata = {"ingested_at_utc": datetime.now(timezone.utc).isoformat()}
+    with out.filesystem().open("_ingest_metadata.json", "w") as f:
+        f.write(json.dumps(metadata))
