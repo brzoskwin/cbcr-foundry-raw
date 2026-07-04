@@ -16,9 +16,9 @@ def compute(oecd_source, out):
     client = connection.get_client()
 
     query = "&".join(f"{k}={v}" for k, v in PARAMS.items())
-    path = f"/public/rest/data/{DATAFLOW}/{FILTER}?{query}"
+    url = f"https://sdmx.oecd.org/public/rest/data/{DATAFLOW}/{FILTER}?{query}"
 
-    response = client.get(path, timeout=60)
+    response = client.get(url, timeout=60)
     response.raise_for_status()
 
     with out.filesystem().open("cbcr_raw.csv", "wb") as f:
