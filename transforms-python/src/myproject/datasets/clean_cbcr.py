@@ -1,5 +1,5 @@
 from transforms.api import transform, Input, Output
-from pyspark.sql import Window
+from pyspark.sql import SparkSession, Window
 from pyspark.sql import functions as F
 
 RAW_COLUMNS = {
@@ -41,13 +41,13 @@ def deduplicate(df):
 
 @transform(
     raw=Input("ri.foundry.main.dataset.19cf92fd-547c-4ded-8444-c7baf6666305"),
-    out=Output("/brzoskwin-17843a/CbCR Tax Rate Analysis/cbcr_clean"),
+    out=Output("ri.foundry.main.dataset.e3d5b917-7337-44d7-a66e-b6afa00fdb5b"),
 )
 def compute(raw, out):
-    ctx = raw.dataframe().sql_ctx.sparkSession
+    spark = SparkSession.builder.getOrCreate()
     path = raw.filesystem().hadoop_path
 
-    raw_df = ctx.read.csv(path, header=True, inferSchema=False)
+    raw_df = spark.read.csv(path, header=True, inferSchema=False)
 
     clean_df = select_and_rename(raw_df)
     clean_df = cast_types(clean_df)
