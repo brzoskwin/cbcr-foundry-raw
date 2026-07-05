@@ -298,10 +298,3 @@ The `HEAD` branch is the canonical, fully-featured version of `transform_join.py
 - Configured `external_systems.Source` connections for the OECD SDMX and Eurostat APIs
 
 ---
-
-## Roadmap
-
-- [ ] Merge `transform_join.py` and `init_audit_flags.py` conflict branches into `main`
-- [ ] Build Workshop widget: filing table sorted by `gapStatutoryMinusEffective`, wired to `FlagForAudit`
-- [ ] Build Contour heatmap of effective tax rate by jurisdiction
-- [ ] Configure RBAC: `TAX_ANALYST` (view) vs. `TAX_MANAGER` (approve)
