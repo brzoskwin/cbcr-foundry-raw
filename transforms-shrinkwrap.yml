@@ -1,15 +1,55 @@
 ---
 mappings:
+<<<<<<< HEAD
+- alias: "/brzoskwin-17843a/CbCR Tax Rate Analysis/audit_candidates"
+  modes:
+  - "BUILD"
+  path: "/deprecated-field"
+  rid: "ri.foundry.main.dataset.3528581f-6bab-47c6-bfb7-8896acb74b6b"
+- alias: "/brzoskwin-17843a/CbCR Tax Rate Analysis/audit_flags"
+  modes:
+  - "BUILD"
+  path: "/deprecated-field"
+  rid: "ri.foundry.main.dataset.db46c797-642f-4c07-a41c-6490edee1409"
+=======
+>>>>>>> 0b79a1d69ee42adb0abe883048447b92716e688d
 - alias: "/brzoskwin-17843a/CbCR Tax Rate Analysis/cbcr_clean"
   modes:
   - "READ"
   path: "/deprecated-field"
   rid: "ri.foundry.main.dataset.e3d5b917-7337-44d7-a66e-b6afa00fdb5b"
+<<<<<<< HEAD
+- alias: "/brzoskwin-17843a/CbCR Tax Rate Analysis/cbcr_incremental_snapshot"
+  modes:
+  - "BUILD"
+  path: "/deprecated-field"
+  rid: "ri.foundry.main.dataset.8009214f-f3ac-4aeb-a693-d6afdcae90d3"
+=======
+>>>>>>> 0b79a1d69ee42adb0abe883048447b92716e688d
 - alias: "/brzoskwin-17843a/CbCR Tax Rate Analysis/effective_vs_statutory"
   modes:
   - "BUILD"
   path: "/deprecated-field"
   rid: "ri.foundry.main.dataset.104d8aa5-0607-4208-a943-0b6202c90a74"
+<<<<<<< HEAD
+- alias: "/brzoskwin-17843a/CbCR Tax Rate Analysis/eurostat_tax_gdp_clean"
+  modes:
+  - "BUILD"
+  path: "/deprecated-field"
+  rid: "ri.foundry.main.dataset.42c39ff2-f5ed-4371-a974-cde9196858e8"
+- alias: "/brzoskwin-17843a/CbCR Tax Rate Analysis/eurostat_tax_gdp_raw"
+  modes:
+  - "BUILD"
+  - "READ"
+  path: "/deprecated-field"
+  rid: "ri.foundry.main.dataset.24b5febc-1401-449b-b998-662417a42be7"
+- alias: "/brzoskwin-17843a/CbCR Tax Rate Analysis/jurisdictions_dim"
+  modes:
+  - "BUILD"
+  path: "/deprecated-field"
+  rid: "ri.foundry.main.dataset.c246ce32-89ec-48b3-aa2e-f7271a7f1186"
+=======
+>>>>>>> 0b79a1d69ee42adb0abe883048447b92716e688d
 - alias: "/brzoskwin-17843a/CbCR Tax Rate Analysis/tax_rates_clean"
   modes:
   - "BUILD"
@@ -22,6 +62,19 @@ mappings:
   - "READ"
   path: "/deprecated-field"
   rid: "ri.foundry.main.dataset.a1bb8247-a921-4b36-b30c-026d512d03dc"
+<<<<<<< HEAD
+- alias: "/brzoskwin-17843a/CbCR Tax Rate Analysis/tax_rates_with_id"
+  modes:
+  - "BUILD"
+  path: "/deprecated-field"
+  rid: "ri.foundry.main.dataset.f78c8080-2751-4fed-9b97-b83ac604d3c4"
+- alias: "/brzoskwin-17843a/CbCR Tax Rate Analysis/top10_beps_gap"
+  modes:
+  - "BUILD"
+  path: "/deprecated-field"
+  rid: "ri.foundry.main.dataset.a9f5cb96-4b8f-4e58-a407-01a4ff447e2d"
+=======
+>>>>>>> 0b79a1d69ee42adb0abe883048447b92716e688d
 - alias: "ri.foundry.main.dataset.19cf92fd-547c-4ded-8444-c7baf6666305"
   modes:
   - "BUILD"
@@ -38,3 +91,11 @@ mappings:
   - "READ"
   path: "/deprecated-field"
   rid: "ri.magritte..source.2183349f-f442-4f9c-8da6-dd4af6a0278b"
+<<<<<<< HEAD
+- alias: "ri.magritte..source.7cd31665-3de1-4728-ae7f-9d9333e5b017"
+  modes:
+  - "READ"
+  path: "/deprecated-field"
+  rid: "ri.magritte..source.7cd31665-3de1-4728-ae7f-9d9333e5b017"
+=======
+>>>>>>> 0b79a1d69ee42adb0abe883048447b92716e688d
