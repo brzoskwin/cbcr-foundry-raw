@@ -2,10 +2,11 @@ from transforms.api import transform, Output
 from transforms.external.systems import external_systems, Source
 
 DATASET_CODE = "gov_10a_taxag"
-BASE_URL = "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data"
+BASE_URL = "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data"
 PARAMS = {
-    "format": "SDMX-CSV",
-    "startPeriod": "2016",
+    "format": "JSON",
+    "lang": "en",
+    "sinceTimePeriod": "2016",
 }
 
 
@@ -32,5 +33,12 @@ def compute(eurostat_source, out):
             if attempt == 2:
                 raise e
 
-    with out.filesystem().open("eurostat_tax_gdp_raw.csv", "wb") as f:
+    content_type = response.headers.get("Content-Type", "")
+    if "xml" in content_type.lower() or b"<env:Envelope" in response.content[:200]:
+        raise ValueError(
+            "Eurostat zwrocil async SOAP envelope zamiast danych. "
+            f"Response head: {response.content[:300]}"
+        )
+
+    with out.filesystem().open("eurostat_tax_gdp_raw.json", "wb") as f:
         f.write(response.content)
