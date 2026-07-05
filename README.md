@@ -1,108 +1,193 @@
-# CbCR Tax Rate Analysis — Foundry Pipeline
+from transforms.api import transform, Input, Output
+from pyspark.sql import functions as F
+<<<<<<< HEAD
+from pyspark.sql.window import Window
 
-> A Palantir Foundry data pipeline detecting Base Erosion and Profit Shifting (BEPS) signals by reconciling OECD Country-by-Country Reporting data with statutory corporate tax rates and Eurostat macro indicators.
 
----
+PROFIT_MEASURE = "Profit (loss) before income tax"
+TAX_PAID_MEASURE = "Income tax paid (on cash basis)"
+EMPLOYEES_MEASURE = "Employees"
+MNE_GROUPS_MEASURE = "Multinational enterprise groups"
+=======
 
-## Overview
+PROFIT_MEASURE = "Profit (loss) before income tax"
+TAX_PAID_MEASURE = "Income tax paid (on cash basis)"
+>>>>>>> 0b79a1d69ee42adb0abe883048447b92716e688d
+STATUTORY_MEASURE = "Corporate income tax rate"
 
-This project ingests, cleans, and joins three public datasets — **OECD CbCR**, **OECD Corporate Income Tax Rates**, and **Eurostat tax-to-GDP ratio** — inside a Foundry Code Repository. The pipeline computes each jurisdiction's *effective* tax rate and compares it against the *statutory* rate to surface the largest gaps, a classic signal of profit shifting. Flagged jurisdictions feed into an Ontology-backed governance workflow with approval and audit trail.
 
-## Pipeline Architecture
+def aggregate_cbcr_totals(cbcr_df):
+    return cbcr_df.groupBy("jurisdiction", "year", "measure").agg(
+        F.sum("obs_value").alias("obs_value")
+    )
 
-```
-ingest_cbcr.py            → cbcr_raw              → clean_cbcr.py        → cbcr_clean
-ingest_tax_rate.py        → tax_rates_raw         → clean_tax_rates.py   → tax_rates_clean
-ingest_eurostat.py        → eurostat_tax_gdp_raw  → clean_eurostat.py    → eurostat_tax_gdp_clean
 
-cbcr_clean                → incremental_batches.py → cbcr_incremental_snapshot
+def pivot_measures(totals_df):
+    wanted = totals_df.filter(
+<<<<<<< HEAD
+        F.col("measure").isin(
+            [PROFIT_MEASURE, TAX_PAID_MEASURE, EMPLOYEES_MEASURE, MNE_GROUPS_MEASURE]
+        )
+    )
+    pivoted = (
+        wanted.groupBy("jurisdiction", "year")
+        .pivot(
+            "measure",
+            [PROFIT_MEASURE, TAX_PAID_MEASURE, EMPLOYEES_MEASURE, MNE_GROUPS_MEASURE],
+        )
+        .agg(F.sum("obs_value"))
+    )
+    pivoted = (
+        pivoted
+        .withColumnRenamed(PROFIT_MEASURE, "profit_before_tax")
+        .withColumnRenamed(TAX_PAID_MEASURE, "tax_paid")
+        .withColumnRenamed(EMPLOYEES_MEASURE, "employees")
+        .withColumnRenamed(MNE_GROUPS_MEASURE, "mne_group_count")
+    )
+=======
+        F.col("measure").isin([PROFIT_MEASURE, TAX_PAID_MEASURE])
+    )
+    pivoted = (
+        wanted.groupBy("jurisdiction", "year")
+        .pivot("measure", [PROFIT_MEASURE, TAX_PAID_MEASURE])
+        .agg(F.sum("obs_value"))
+    )
+    pivoted = pivoted.withColumnRenamed(PROFIT_MEASURE, "profit_before_tax")
+    pivoted = pivoted.withColumnRenamed(TAX_PAID_MEASURE, "tax_paid")
+>>>>>>> 0b79a1d69ee42adb0abe883048447b92716e688d
+    return pivoted
 
-cbcr_clean + tax_rates_clean → transform_join.py →  effective_vs_statutory
-                                                  →  top10_beps_gap
-                                                  →  audit_candidates
-                                                  →  jurisdictions_dim
-                                                  →  tax_rates_with_id
 
-init_audit_flags.py       → audit_flags  (seed dataset for the FlagForAudit action)
-```
+def compute_effective_rate(df):
+<<<<<<< HEAD
+    df = df.withColumn(
+=======
+    return df.withColumn(
+>>>>>>> 0b79a1d69ee42adb0abe883048447b92716e688d
+        "effective_tax_rate",
+        F.when(
+            (F.col("profit_before_tax").isNotNull()) & (F.col("profit_before_tax") > 0),
+            F.col("tax_paid") / F.col("profit_before_tax"),
+        ).otherwise(F.lit(None)),
+    )
+<<<<<<< HEAD
+    df = df.withColumn(
+        "profit_per_employee",
+        F.when(
+            (F.col("employees").isNotNull()) & (F.col("employees") > 0),
+            F.col("profit_before_tax") / F.col("employees"),
+        ).otherwise(F.lit(None)),
+    )
+    return df
+=======
+>>>>>>> 0b79a1d69ee42adb0abe883048447b92716e688d
 
-## Datasets
 
-| File | Input | Output | Purpose |
-|---|---|---|---|
-| `ingest_cbcr.py` | OECD SDMX API (`DSD_CBCR@DF_CBCRI`) | `cbcr_raw.csv` | Pulls raw CbCR data from OECD, with retry (3x) and 60s timeout |
-| `ingest_tax_rate.py` | OECD SDMX API (`DSD_TAX_CIT@DF_CIT`) | `tax_rates_raw.csv` | Pulls statutory CIT rates per jurisdiction and year |
-| `ingest_eurostat.py` | Eurostat API (`gov_10a_taxag`) | `eurostat_tax_gdp_raw.json` | Pulls tax-to-GDP ratio in JSON-stat format |
-| `clean_cbcr.py` | `cbcr_raw` | `cbcr_clean` | Renames columns, casts types, drops nulls, deduplicates on `(jurisdiction, counterpart_jurisdiction, measure, year)` |
-| `clean_tax_rates.py` | `tax_rates_raw` | `tax_rates_clean` | Renames columns, casts `tax_rate` to double, deduplicates on `(jurisdiction, measure, year)` |
-| `clean_eurostat.py` | `eurostat_tax_gdp_raw` | `eurostat_tax_gdp_clean` | Custom JSON-stat parser, filters by tax category and unit of measure (% of GDP) |
-| `incremental_batches.py` | `cbcr_clean` | `cbcr_incremental_snapshot` | Splits on-time vs. late-arriving records (7-day lookback), merges and deduplicates |
-| `transform_join.py` | `cbcr_clean`, `tax_rates_clean` | `effective_vs_statutory`, `top10_beps_gap`, `audit_candidates`, `jurisdictions_dim`, `tax_rates_with_id` | Aggregates CbCR, pivots measures, joins with statutory rates, computes `effective_tax_rate` and the BEPS gap |
-| `init_audit_flags.py` | — | `audit_flags` | Seeds an empty dataset with the audit-trail schema used by the `FlagForAudit` action |
-| `examples.py` | — | — | Boilerplate template using `LightweightInput` / `LightweightOutput` (Polars, lazy) |
+def filter_statutory_rates(tax_df):
+    statutory = tax_df.filter(F.col("measure") == STATUTORY_MEASURE)
+    statutory = statutory.withColumnRenamed("tax_rate", "statutory_rate")
+<<<<<<< HEAD
+    statutory = statutory.select("jurisdiction", "year", "statutory_rate")
+    statutory = statutory.withColumn(
+        "id", F.concat_ws("_", F.col("jurisdiction"), F.col("year").cast("string"))
+    )
+    return statutory
 
-## Core Logic
 
-**Ingestion** — every `ingest_*.py` module uses `external_systems.Source` with three retry attempts and a 60-second timeout per request.
+def apply_qualify_pattern(df):
+    """
+    Equivalent of SQL QUALIFY: keep only jurisdictions where
+    employees > median AND profit_per_employee is in the top quartile (per year).
+    """
+    window_year = Window.partitionBy("year")
 
-**Normalization** — raw OECD column names (`Reference area`, `Measure`, `TIME_PERIOD`, `OBS_VALUE`) are mapped to standardized names, with validation against missing columns.
+    median_employees = F.expr(
+        "percentile_approx(employees, 0.5)"
+    ).over(window_year)
 
-**Deduplication** — implemented via:
+    q3_profit_per_employee = F.expr(
+        "percentile_approx(profit_per_employee, 0.75)"
+    ).over(window_year)
 
-```python
-Window.partitionBy(*DEDUP_KEYS).orderBy(F.col("_ingested_at").desc())
-```
+    flagged = df.withColumn("median_employees_year", median_employees)
+    flagged = flagged.withColumn("q3_profit_per_employee_year", q3_profit_per_employee)
 
-removing duplicate resubmissions while keeping the latest record.
+    flagged = flagged.withColumn(
+        "audit_signal",
+        (F.col("employees") > F.col("median_employees_year"))
+        & (F.col("profit_per_employee") >= F.col("q3_profit_per_employee_year")),
+    )
+    return flagged
+=======
+    return statutory.select("jurisdiction", "year", "statutory_rate")
+>>>>>>> 0b79a1d69ee42adb0abe883048447b92716e688d
 
-**Incremental snapshot** — `incremental_batches.py` separates records into `on_time` and `late_arriving` buckets based on a 7-day lookback window, then merges and deduplicates the result into a single snapshot.
 
-**Pivot and join** — `transform_join.py` aggregates CbCR by `(jurisdiction, year, measure)`, pivots into columns (`profit_before_tax`, `tax_paid`, `employees`, `mne_group_count`), computes:
+@transform(
+    cbcr=Input("/brzoskwin-17843a/CbCR Tax Rate Analysis/cbcr_clean"),
+    tax=Input("/brzoskwin-17843a/CbCR Tax Rate Analysis/tax_rates_clean"),
+    out=Output("/brzoskwin-17843a/CbCR Tax Rate Analysis/effective_vs_statutory"),
+<<<<<<< HEAD
+    out_top10=Output("/brzoskwin-17843a/CbCR Tax Rate Analysis/top10_beps_gap"),
+    out_audit=Output("/brzoskwin-17843a/CbCR Tax Rate Analysis/audit_candidates"),
+    out_jurisdictions=Output("/brzoskwin-17843a/CbCR Tax Rate Analysis/jurisdictions_dim"),
+    out_tax_rates=Output("/brzoskwin-17843a/CbCR Tax Rate Analysis/tax_rates_with_id"),
+)
+def compute(cbcr, tax, out, out_top10, out_audit, out_jurisdictions, out_tax_rates):
+=======
+)
+def compute(cbcr, tax, out):
+>>>>>>> 0b79a1d69ee42adb0abe883048447b92716e688d
+    cbcr_df = cbcr.dataframe()
+    tax_df = tax.dataframe()
 
-- `effective_tax_rate = tax_paid / profit_before_tax`
-- `profit_per_employee = profit_before_tax / employees`
+    totals = aggregate_cbcr_totals(cbcr_df)
+    pivoted = pivot_measures(totals)
+    pivoted = compute_effective_rate(pivoted)
 
-then joins with statutory rates on `(jurisdiction, year)`.
+    statutory = filter_statutory_rates(tax_df)
 
-**BEPS signal** — the gap between nominal and effective rates:
+<<<<<<< HEAD
+    merged = pivoted.join(
+        statutory.drop("id"), on=["jurisdiction", "year"], how="inner"
+    )
+=======
+    merged = pivoted.join(statutory, on=["jurisdiction", "year"], how="inner")
+>>>>>>> 0b79a1d69ee42adb0abe883048447b92716e688d
 
-```python
-gap_statutory_minus_effective = statutory_rate - effective_tax_rate_pct
-```
+    merged = merged.withColumn(
+        "effective_tax_rate_pct", F.col("effective_tax_rate") * 100
+    )
+    merged = merged.withColumn(
+        "gap_statutory_minus_effective",
+        F.col("statutory_rate") - F.col("effective_tax_rate_pct"),
+    )
+<<<<<<< HEAD
+    merged = merged.withColumn(
+        "id", F.concat_ws("_", F.col("jurisdiction"), F.col("year").cast("string"))
+    )
+    merged = merged.orderBy(F.col("gap_statutory_minus_effective").desc())
 
-sorted descending; the top 10 jurisdictions are written to `top10_beps_gap`.
+    out.write_dataframe(merged)
 
-**QUALIFY pattern** — `apply_qualify_pattern` flags jurisdictions where `employees` exceeds the yearly median **and** `profit_per_employee` sits in the top quartile (`percentile_approx(0.75)`) — the SQL `QUALIFY` equivalent, used as an audit trigger.
+    top10 = merged.orderBy(F.col("gap_statutory_minus_effective").desc()).limit(10)
+    out_top10.write_dataframe(top10)
 
-**Audit trail seed** — `init_audit_flags.py` initializes an empty dataset with the schema (`flag_id`, `filing_id`, `reason`, `flagged_by`, `flagged_at`, `status`) required by the `FlagForAudit` Ontology action.
+    qualified = apply_qualify_pattern(merged)
+    audit_candidates = qualified.filter(F.col("audit_signal") == True)
+    out_audit.write_dataframe(audit_candidates)
 
-## Ontology Model
+    jurisdictions = merged.select("jurisdiction").distinct()
+    out_jurisdictions.write_dataframe(jurisdictions)
 
-| Component | Details |
-|---|---|
-| Object Types | `MNEGroup`, `Jurisdiction`, `CbCRFiling`, `TaxRate` |
-| Link Types | `MNEGroup → CbCRFiling` (1:N), `CbCRFiling → Jurisdiction` (N:1), `Jurisdiction → TaxRate` (1:N by year) |
-| Derived Property | `effective_tax_rate` on `CbCRFiling`, computed from linked data |
-| Action Type | `FlagForAudit` — requires approval, writes an audit trail (who, when, reason — e.g. "effective rate < 5pp below nominal rate") |
+    out_tax_rates.write_dataframe(statutory)
+=======
 
-## Known Issues
+    merged = merged.withColumn(
+        "id", F.concat_ws("_", F.col("jurisdiction"), F.col("year").cast("string"))
+    )
 
-- `ingest_cbcr.py`, `clean_cbcr.py`, and `transform_join.py` contain unresolved Git merge conflicts (`<<<<<<< HEAD` / `=======`). The `HEAD` branch is the more complete version, adding `employees`, `mne_group_count`, `profit_per_employee`, and the extra outputs (`top10_beps_gap`, `audit_candidates`, `jurisdictions_dim`, `tax_rates_with_id`). These need to be merged into `main` before further development.
-- `filter_statutory_rates` (HEAD version) adds an `id` column that must be dropped before the join (`statutory.drop("id")`) — consider generating `id` once, at the end of the pipeline, instead.
+    merged = merged.orderBy(F.col("gap_statutory_minus_effective").desc())
 
-## Requirements
-
-- Python 3.9+
-- PySpark (Foundry runtime)
-- `transforms-expectations` library for data quality checks:
-  - `profit_before_tax >= 0`
-  - `tax_paid <= profit_before_tax`
-  - `revenue >= profit_before_tax`
-- Configured `external_systems.Source` connections for the OECD SDMX and Eurostat APIs
-
-## Roadmap
-
-- [ ] Resolve remaining Git merge conflicts across `ingest_cbcr.py`, `clean_cbcr.py`, and `transform_join.py`
-- [ ] Build Workshop dashboard with MNEGroup table sorted by BEPS gap, wired to `FlagForAudit`
-- [ ] Build Contour heatmap of effective tax rate by jurisdiction
-- [ ] Configure RBAC: `TAX_ANALYST` (view) vs. `TAX_MANAGER` (approve)
+    out.write_dataframe(merged)
+>>>>>>> 0b79a1d69ee42adb0abe883048447b92716e688d
