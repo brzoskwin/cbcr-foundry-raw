@@ -282,12 +282,6 @@ Requires approval; writes a new row to `audit_flags` with `flag_id`, `filing_id`
 
 ---
 
-## Merge Status
-
-The `HEAD` branch is the canonical, fully-featured version of `transform_join.py` and `init_audit_flags.py` — it includes `employees`, `mne_group_count`, `profit_per_employee`, the QUALIFY audit pattern, and the four additional outputs (`top10_beps_gap`, `audit_candidates`, `jurisdictions_dim`, `tax_rates_with_id`). The Ontology above reflects this HEAD version; the alternate branch (profit/tax only, no audit outputs) is superseded and should be merged away.
-
----
-
 ## Requirements
 
 - Python 3.9+, PySpark (Foundry runtime)
