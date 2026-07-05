@@ -20,9 +20,15 @@ mappings:
   - "BUILD"
   path: "/deprecated-field"
   rid: "ri.foundry.main.dataset.104d8aa5-0607-4208-a943-0b6202c90a74"
+- alias: "/brzoskwin-17843a/CbCR Tax Rate Analysis/eurostat_tax_gdp_clean"
+  modes:
+  - "BUILD"
+  path: "/deprecated-field"
+  rid: "ri.foundry.main.dataset.42c39ff2-f5ed-4371-a974-cde9196858e8"
 - alias: "/brzoskwin-17843a/CbCR Tax Rate Analysis/eurostat_tax_gdp_raw"
   modes:
   - "BUILD"
+  - "READ"
   path: "/deprecated-field"
   rid: "ri.foundry.main.dataset.24b5febc-1401-449b-b998-662417a42be7"
 - alias: "/brzoskwin-17843a/CbCR Tax Rate Analysis/tax_rates_clean"
