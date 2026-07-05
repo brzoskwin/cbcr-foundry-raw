@@ -1,5 +1,10 @@
 ---
 mappings:
+- alias: "/brzoskwin-17843a/CbCR Tax Rate Analysis/audit_flags"
+  modes:
+  - "BUILD"
+  path: "/deprecated-field"
+  rid: "ri.foundry.main.dataset.db46c797-642f-4c07-a41c-6490edee1409"
 - alias: "/brzoskwin-17843a/CbCR Tax Rate Analysis/cbcr_clean"
   modes:
   - "READ"
